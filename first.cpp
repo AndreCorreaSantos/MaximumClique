@@ -1,99 +1,80 @@
 #include <iostream>
 #include <vector>
 #include <fstream>
+#include <map>
 using namespace std;
 
-// lists all possible vertices
-vector<int> get_all_nodes(int num_vertices){
-    vector<int> nodes;
-    for (int i = 0; i<num_vertices; i++){
-        nodes.push_back(i);
-    }
-    return nodes;
-}
+// read stops information from file
+map<int,int> read_demands(ifstream& file) {
+    
+    int num_vertices; // numero de vertices contando com a origem, o vertice 0.
+    file >> num_vertices;
 
-vector<vector<int>> find_max_clique(vector<vector<int>> graph, int num_vertices){ // Returns the biggest clique found.
-    vector <int> maximum_clique;
-    vector <int> candidates = get_all_nodes(num_vertices); // initially all nodes are candidates
 
-    while(candidates.size() != 0)
+    cout << "\nnvertices\n" << num_vertices << "\n";
+
+    map<int,int> stops;
+    for (int i = 1; i<num_vertices; i++) // vai de 1 a n_vertices
     {
-        int v  = candidates.back();
-        candidates.pop_back();
+        int stop;
+        int demand;
 
-        bool valid = true;
-
-        for (int u=0; u< maximum_clique.size(); u++)
-        {
-            if(graph[u][v] == 0)
-            {
-                valid = false;
-                break;
-            }
-        }
-
-        if(valid)
-        {
-            maximum_clique.push_back(v);
-            vector <int> new_candidates; // NAO SEI SE ESTA CORRETO
-            
-            for (int u = 0; u < new_candidates.size(); u ++){
-                int candidate = new_candidates.at(u);
-                bool adjacent = true;
-
-                for (int c = 0; c < maximum_clique.size(); c++)
-                {
-                    int node = maximum_clique.at(c);
-
-                    if(graph[candidate][c] == 0)
-                    {
-                        adjacent = false;
-                        break;
-                    }
-                }
-                if(adjacent)
-                {
-                    new_candidates.push_back(candidate);
-                    break;
-                }
-            }
-
-            candidates = new_candidates;
-        }
-    
+        file >> stop >> demand;
+        stops[stop] = demand;
+        cout << "stop,demand:" << stop << "," << demand << "\n";
     }
 
     
+    return stops;
 }
 
 
+vector< vector <int>> read_routes(ifstream& file, int num_stops) {
+    int num_routes;
+    file >> num_routes;
+    vector<vector<int>> routes(num_stops, vector<int>(num_stops,0)); // initializing all routes[u][v] = 0
 
-// read graph from input
-vector<vector<int>> read_graph(const string& nomeArquivo, int& num_vertices) {
-    ifstream arquivo(nomeArquivo);
-    int num_edges;
-    arquivo >> num_vertices >> num_edges;
+    for (int i = 0; i < num_routes; i++){ // existing routes will store their respective cost
+        int u,v,cost;
+        file >> u >> v >> cost;
+        routes[u][v] = cost;
+        routes[v][u] = cost;
+    }
+    return routes;
+}
 
-    vector<vector<int>> graph(num_vertices, vector<int>(num_vertices, 0));
+void write_routes(const vector<vector<int>>& routes, const string& filename) { // debug function to write the cost matrix to a file
+    ofstream outFile(filename);
 
-    for (int i = 0; i < num_edges; ++i) {
-        int u, v;
-        arquivo >> u >> v;
-        graph[u - 1][v - 1] = 1;
-        graph[v - 1][u - 1] = 1;  // The graph is undirected
+    if (!outFile.is_open()) {
+        cout << "Error opening output file." << endl;
+        return;
     }
 
-    arquivo.close();
+    for (const auto& row : routes) {
+        for (int cost : row) {
+            outFile << cost << " ";
+        }
+        outFile << endl;
+    }
 
-    return graph; // returns a V x V matrix, where V is the number of vertices and V[i][j] = 1 if there is an edge in between i e j.
+    outFile.close();
 }
 
 
-int main(){
-    int num_vertices;
-    vector<vector<int>> graph = read_graph("graph.txt", num_vertices);
+int main(int argc, char *argv[]){
+    if (argc != 2) {
+        cerr << "Usage: " << argv[0] << " <filename>\n";
+        return 1;
+    }
+    string file_name = argv[1];
+    ifstream file(file_name); 
+    map<int,int> stops = read_demands(file); // store the stops and their demands in the stops map 
+    vector< vector <int>> routes = read_routes(file,stops.size()+1); // adding 1 to account for the origin as a vertex in the graph
+    file.close();
 
-    find_max_clique();
+    string out_file = "teste.txt";
+
 
     return 0;
 }

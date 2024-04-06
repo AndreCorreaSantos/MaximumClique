@@ -1,24 +1,56 @@
-
-import networkx as nx
 import random
+# from networkx import set_node_attributes
 
-# Parâmetros
-num_vertices = 1000  # Número de vértices no grafo
-probabilidade_conexao = 0.7  # Probabilidade de haver uma aresta entre dois vértices (ajuste conforme necessário)
+def gerar_dicionario_demandas(N):
+    """
+    Gera um dicionário onde a chave é um int de 1 até N e o valor é um inteiro aleatório de 1 até 10.
 
-# Crie um grafo aleatório densamente conectado
-grafo = nx.fast_gnp_random_graph(num_vertices, probabilidade_conexao)
+    :param N: Número máximo para as chaves do dicionário.
+    :return: Dicionário com chaves de 1 até N e valores inteiros aleatórios de 1 até 10.
+    """
+    return {i: random.randint(1, 10) for i in range(1, N)}
 
-# Nome do arquivo de saída
-nome_arquivo = "grafo.txt"
 
-# Abra o arquivo para escrita
-with open(nome_arquivo, 'w') as arquivo:
-    # Escreva a quantidade de vértices e número de arestas na primeira linha
-    arquivo.write(f"{num_vertices} {grafo.number_of_edges()}\n")
+def gerar_entradas_grafo(num_nos, max_peso=100, probabilidade=0.25):
+    """
+    Gera um grafo para o problema de otimização de rotas de veículos.
 
-    # Escreva as arestas no formato de lista de adjacência
-    for aresta in grafo.edges():
-        arquivo.write(f"{aresta[0]+1} {aresta[1]+1}\n")  # +1 para ajustar os índices (começando em 1)
+    :param num_nos: Número de nós no grafo, incluindo o depósito.
+    :param max_peso: Peso máximo para as arestas do grafo.
+    :param probabilidade: Probabilidade de criar uma rota entre duas cidades.
+    :return: Um dicionário representando o grafo onde as chaves são tuplas representando as arestas (nó1, nó2)
+             e os valores são os pesos dessas arestas.
+    """
+    grafo = {}
+    # Gerar pesos para arestas entre o depósito e outros nós
+    for i in range(1, num_nos):
+        grafo[(0, i)] = random.randint(1, max_peso)
+        grafo[(i, 0)] = grafo[(0, i)]  # Assume que a distância de volta ao depósito é a mesma
 
-print(f"Grafo densamente conectado gerado e salvo em '{nome_arquivo}'.")
+    # Gerar pesos para arestas entre todos os outros pares de nós
+    for i in range(1, num_nos):
+        for j in range(i+1, num_nos):
+            if random.random() > (1 - probabilidade):  # Verifica a probabilidade
+                peso = random.randint(1, max_peso)
+                grafo[(i, j)] = peso
+
+    return grafo
+
+############################################
+#             Exemplo de uso
+############################################
+num_nos = 10                                   # Número total de nós incluindo o depósito
+demandas = gerar_dicionario_demandas(num_nos)  # Gera as demandas para cada nó
+grafo = gerar_entradas_grafo(num_nos)          # Gera o grafo que representa os locais e custos entre eles
+
+# Salva o grafo em um arquivo TXT
+with open('grafo.txt', 'w') as arquivo:
+  arquivo.write(str(num_nos) + "\n")    # Número de nós, incluindo depósito
+  for local, demanda in demandas.items():
+    linha = f"{local} {demanda}\n"      # Par LOCAL DEMANDA
+    arquivo.write(linha)
+
+  arquivo.write(str(len(grafo)) + "\n") # Número de arestas
+  for aresta, peso in grafo.items():
+    linha = f"{aresta[0]} {aresta[1]} {peso}\n" # Trio: ORIGEM DESTINO CUSTO
+    arquivo.write(linha)
