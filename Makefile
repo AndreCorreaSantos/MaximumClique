@@ -1,7 +1,7 @@
 # Compiler
 CXX = g++
 # Compiler flags
-CXXFLAGS = -std=c++11 -Wall -Wextra
+CXXFLAGS = -std=c++20 -Wall -Wextra
 # Source files
 SRCS = first.cpp
 # Object files
