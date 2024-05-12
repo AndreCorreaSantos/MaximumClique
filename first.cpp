@@ -80,7 +80,7 @@ vector<vector<int>> generate_permutations(int num_points) {
     return permutations;
 }
 // function that receives the permutations and tries to fix routes that violate constraints, 
-vector<vector<int>> filter_routes(vector<vector<int>> permutations, vector<vector<int>> real_routes, int max_cost) {
+vector<vector<int>> filter_routes(vector<vector<int>> permutations, vector<vector<int>> real_routes, int max_cost) { 
 
     vector<vector<int>> valid_routes;
 
@@ -93,17 +93,24 @@ vector<vector<int>> filter_routes(vector<vector<int>> permutations, vector<vecto
         for (int i = 0; i < size; i++) { 
             int current_stop = route[i];
             int next_stop = route[i + 1];
+            
+            int current_cost = real_routes[current_stop][next_stop];
+            bool over_cost = cost+current_cost > max_cost;
 
-            if ((real_routes[current_stop][next_stop] < 1)) { //  if any constraint is violated we try to add 0 in between the edges of the violator to try and fix, ADICIONAR CALCULO DO CUSTO
+            if ((current_cost ==0 ) || (over_cost)) { //  if any constraint is violated we try to add 0 in between the edges of the violator to try and fix, ADICIONAR CALCULO DO CUSTO
 
-                if (real_routes[current_stop][0] == 0 || real_routes[0][next_stop] == 0) { // if there isnt a route from current_stop to 0 or from 0 to next stop the route cannot be fixed.
+                if ((real_routes[current_stop][0] == 0) || (real_routes[0][next_stop] == 0)) { // if there isnt a route from current_stop to 0 or from 0 to next stop the route cannot be fixed.
                     valid = false;
                     break; // exiting the loop as the current route cannot be fixed
                 }
 
+
                 route.insert(route.begin()+i+1, 0);
+                cost = 0; // resetting cost as the vehicle returned to the origin
+                current_cost = real_routes[current_stop][0];
                 size++;
             }
+            cost += current_cost;
         }
 
         if (valid) {
@@ -140,7 +147,8 @@ int main(int argc, char *argv[]) {
     map<int, int> stops = read_demands(file);                         // store the stops and their demands in the stops map
     vector<vector<int>> routes = read_routes(file, stops.size() + 1); // adding 1 to account for the origin as a vertex in the graph
     vector<vector<int>> permutations = generate_permutations(routes.size());
-    vector<vector<int>> valid_routes = filter_routes(permutations,routes,0);
+    int max_cost = 200; // hardcoding max cost to 200 to test
+    vector<vector<int>> valid_routes = filter_routes(permutations,routes,max_cost); 
 
     write_routes(valid_routes,"debug.txt"); // writing function to debug
     // cout << permutations.size();
