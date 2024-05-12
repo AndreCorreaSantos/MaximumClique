@@ -80,7 +80,7 @@ vector<vector<int>> generate_permutations(int num_points) {
     return permutations;
 }
 // function that receives the permutations and tries to fix routes that violate constraints,
-vector<vector<int>> filter_routes(vector<vector<int>> permutations, vector<vector<int>> real_routes, map<int,int> demands, int max_cost) {
+vector<vector<int>> filter_routes(vector<vector<int>> permutations, vector<vector<int>> real_routes, map<int, int> demands, int max_cost) {
 
     vector<vector<int>> valid_routes;
 
@@ -105,8 +105,8 @@ vector<vector<int>> filter_routes(vector<vector<int>> permutations, vector<vecto
                     break; // exiting the loop as the current route cannot be fixed
                 }
 
-                route.insert(route.begin() + i + 1, 0); 
-                cost = 0;                               // resetting cost as the vehicle returned to the origin
+                route.insert(route.begin() + i + 1, 0);
+                cost = 0; // resetting cost as the vehicle returned to the origin
                 current_cost = return_cost;
                 size++;
             }
@@ -120,14 +120,41 @@ vector<vector<int>> filter_routes(vector<vector<int>> permutations, vector<vecto
     return valid_routes;
 }
 
-// // function that receives a graph of routes and returns all possible combinations to traverse the route and go from start, to start
-// vector<vector<vector<int>>> generate_possible_combinations(vector<vector<int>> routes, int max_cost) {
-// }
+// function to calculate the total cost of a route
+int route_cost(vector<int> route, vector<vector<int>> route_matrix) {
+    int cost = 0;
+    for (int i = 0; i < int(route.size()) - 1; i++) {
+        cost += route_matrix[i][i + 1];
+    }
+
+    return cost;
+}
+
+// function that receives the valid routes and returns the one with smallest cost
+vector<int> get_cheapest(vector<vector<int>> valid_routes, vector<vector<int>> route_matrix) {
+    int lowest_cost = numeric_limits<int>::max();
+    vector<int> cheapest_route;
+    for (int i = 0; i < int(valid_routes.size()); i++) {
+        int current_cost = route_cost(valid_routes[i], route_matrix);
+        if (current_cost < lowest_cost) {
+            lowest_cost = current_cost;
+            cheapest_route = valid_routes[i];
+        }
+    }
+    return cheapest_route;
+}
+
+void debug_route(vector<int> route){
+    for (int i = 0; i<int(route.size()); i++){
+        cout<< route[i];
+        cout<< "\n";
+    }
+}
 
 // vector<int> solveVRP(map<int, int> stops, vector<vector<int>> routes) // receives a list of stops and their demands, and a graph of routes and costs
 // {
 //     vector<vector<int>> best_route;
-//     int lowest_cost = numeric_limits<int>::max();
+//
 
 //     vector<vector<vector<int>>> combinations = generate_possible_combinations(routes);
 // }
@@ -144,13 +171,15 @@ int main(int argc, char *argv[]) {
     // reading max cost
     // int max_cost; // first line in the file is the max possible cost in the car
     // file >> max_cost;
-    map<int, int> demands = read_demands(file);                         // store the stops and their demands in the demands map
-    vector<vector<int>> routes = read_routes(file, demands.size() + 1); // adding 1 to account for the origin as a vertex in the graph
-    vector<vector<int>> permutations = generate_permutations(routes.size());
+    map<int, int> demands = read_demands(file);                               // store the stops and their demands in the demands map
+    vector<vector<int>> route_matrix = read_routes(file, demands.size() + 1); // adding 1 to account for the origin as a vertex in the graph
+    vector<vector<int>> permutations = generate_permutations(route_matrix.size());
     int max_cost = 190; // hardcoding max cost to 200 to
-    vector<vector<int>> valid_routes = filter_routes(permutations, routes,demands, max_cost);
-
-    write_routes(valid_routes, "debug.txt"); // writing function to debug
+    vector<vector<int>> valid_routes = filter_routes(permutations, route_matrix, demands, max_cost);
+    vector<int> cheapest_route = get_cheapest(valid_routes, route_matrix);
+    vector<vector<int>> results;
+    results.push_back(cheapest_route);
+    write_routes(results, "debug.txt"); // writing function to debug
     // cout << permutations.size();
     // cout << "\n";
     // cout << valid_routes.size();
