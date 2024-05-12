@@ -96,14 +96,13 @@ vector<vector<int>> filter_routes(vector<vector<int>> permutations, vector<vecto
             
             int current_cost = real_routes[current_stop][next_stop];
             bool over_cost = cost+current_cost > max_cost;
-
-            if ((current_cost ==0 ) || (over_cost)) { //  if any constraint is violated we try to add 0 in between the edges of the violator to try and fix, ADICIONAR CALCULO DO CUSTO
+            
+            if (current_cost ==0 || over_cost) { //  if any constraint is violated we try to add 0 in between the edges of the violator to try and fix, ADICIONAR CALCULO DO CUSTO
 
                 if ((real_routes[current_stop][0] == 0) || (real_routes[0][next_stop] == 0)) { // if there isnt a route from current_stop to 0 or from 0 to next stop the route cannot be fixed.
                     valid = false;
                     break; // exiting the loop as the current route cannot be fixed
                 }
-
 
                 route.insert(route.begin()+i+1, 0);
                 cost = 0; // resetting cost as the vehicle returned to the origin
@@ -147,7 +146,7 @@ int main(int argc, char *argv[]) {
     map<int, int> stops = read_demands(file);                         // store the stops and their demands in the stops map
     vector<vector<int>> routes = read_routes(file, stops.size() + 1); // adding 1 to account for the origin as a vertex in the graph
     vector<vector<int>> permutations = generate_permutations(routes.size());
-    int max_cost = 200; // hardcoding max cost to 200 to test
+    int max_cost = 250; // hardcoding max cost to 200 to
     vector<vector<int>> valid_routes = filter_routes(permutations,routes,max_cost); 
 
     write_routes(valid_routes,"debug.txt"); // writing function to debug
