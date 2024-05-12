@@ -39,7 +39,7 @@ def gerar_entradas_grafo(num_nos, max_peso=100, probabilidade=0.25):
 ############################################
 #             Exemplo de uso
 ############################################
-num_nos = 5                                   # Número total de nós incluindo o depósito
+num_nos = 7                                   # Número total de nós incluindo o depósito
 demandas = gerar_dicionario_demandas(num_nos)  # Gera as demandas para cada nó
 grafo = gerar_entradas_grafo(num_nos)          # Gera o grafo que representa os locais e custos entre eles
 
