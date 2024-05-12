@@ -80,7 +80,7 @@ vector<vector<int>> generate_permutations(int num_points) {
     return permutations;
 }
 // function that receives the permutations and tries to fix routes that violate constraints,
-vector<vector<int>> filter_routes(vector<vector<int>> permutations, vector<vector<int>> real_routes, map<int, int> demands, int max_cost) {
+vector<vector<int>> filter_routes(vector<vector<int>> permutations, vector<vector<int>> real_routes, map<int, int> demands, int max_cost, int max_size) {
 
     vector<vector<int>> valid_routes;
 
@@ -114,7 +114,10 @@ vector<vector<int>> filter_routes(vector<vector<int>> permutations, vector<vecto
         }
 
         if (valid) {
-            valid_routes.push_back(route);
+            if(route.size() <= max_size){
+                valid_routes.push_back(route);
+            }
+            
         }
     }
     return valid_routes;
@@ -174,8 +177,9 @@ int main(int argc, char *argv[]) {
     map<int, int> demands = read_demands(file);                               // store the stops and their demands in the demands map
     vector<vector<int>> route_matrix = read_routes(file, demands.size() + 1); // adding 1 to account for the origin as a vertex in the graph
     vector<vector<int>> permutations = generate_permutations(route_matrix.size());
-    int max_cost = 190; // hardcoding max cost to 200 to
-    vector<vector<int>> valid_routes = filter_routes(permutations, route_matrix, demands, max_cost);
+    int max_cost = 190; // hardcoding max cost to test
+    int max_size = 7; // hardcoding max size to test
+    vector<vector<int>> valid_routes = filter_routes(permutations, route_matrix, demands, max_cost, max_size);
     vector<int> cheapest_route = get_cheapest(valid_routes, route_matrix);
     vector<vector<int>> results;
     results.push_back(cheapest_route);
