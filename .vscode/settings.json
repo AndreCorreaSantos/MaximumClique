@@ -76,5 +76,5 @@
         "typeindex": "cpp",
         "variant": "cpp"
     },
-    "C_Cpp.default.compilerPath": "/usr/bin/g++-10"
+    "C_Cpp.default.compilerPath": "/usr/bin/g++-11"
 }

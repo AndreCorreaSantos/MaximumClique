@@ -1,26 +1,30 @@
 # Compiler
 CXX = g++
+NVCC = nvcc
+
 # Compiler flags
 CXXFLAGS = -std=c++20 -Wall -Wextra
+NVCCFLAGS = -ccbin /usr/bin/g++-10 -I /usr/include/c++/10
+
 # Source files
-SRCS = first.cpp
-# Object files
-OBJS = $(SRCS:.cpp=.o)
-# Executable name
-TARGET = first
+CPP_SOURCES = $(wildcard *.cpp)
+CU_SOURCES = $(wildcard *.cu)
 
-# Build rule for the executable
-$(TARGET): $(OBJS)
-	$(CXX) $(CXXFLAGS) -o $@ $^
+# Executables
+CPP_EXECUTABLES = $(CPP_SOURCES:.cpp=)
+CU_EXECUTABLES = $(CU_SOURCES:.cu=)
 
-# Rule to compile .cpp files into .o files
-%.o: %.cpp
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+# Default rule
+all: $(CPP_EXECUTABLES) $(CU_EXECUTABLES)
 
-# Run the program
-run: $(TARGET)
-	./$(TARGET) grafo.txt
+# Rule to compile .cpp files into executables
+%: %.cpp
+	$(CXX) $(CXXFLAGS) -o $@ $<
+
+# Rule to compile .cu files into executables
+%: %.cu
+	$(NVCC) $(NVCCFLAGS) -o $@ $<
 
 # Clean rule
 clean:
-	rm -f $(OBJS) $(TARGET)
+	rm -f $(CPP_EXECUTABLES) $(CU_EXECUTABLES)
