@@ -6,6 +6,12 @@
 #include <vector>
 using namespace std;
 
+class Route{
+    public:
+    vector<int> stops;
+    int totalCost;
+};
+
 // read stops information from file
 map<int, int> read_demands(ifstream &file) {
 
@@ -40,7 +46,7 @@ vector<vector<int>> read_routes(ifstream &file, int num_stops) {
     return routes;
 }
 
-void write_routes(const vector<vector<int>> &routes, const string &filename) { // debug function to write the cost matrix to a file
+void write_routes(const vector<Route> &routes, const string &filename) { // debug function to write the cost matrix to a file
     ofstream outFile(filename);
 
     if (!outFile.is_open()) {
@@ -48,10 +54,15 @@ void write_routes(const vector<vector<int>> &routes, const string &filename) { /
         return;
     }
 
-    for (const auto &row : routes) {
-        for (int cost : row) {
-            outFile << cost << " ";
+    Route route;
+    for (int i = 0; i<routes.size(); i++) {
+        route = routes[i];
+        for (int j = 0; j < route.stops.size(); j++) {
+            int stop = route.stops[j];
+            outFile << stop << " ";
         }
+        outFile << " | ";
+        outFile << route.totalCost;
         outFile << endl;
     }
 
@@ -80,68 +91,62 @@ vector<vector<int>> generate_permutations(int num_points) {
     return permutations;
 }
 // function that receives the permutations and tries to fix routes that violate constraints,
-vector<vector<int>> filter_routes(vector<vector<int>> permutations, vector<vector<int>> real_routes, map<int, int> demands, int max_cost, int max_size) {
+vector<Route> filter_routes(vector<vector<int>> permutations, vector<vector<int>> real_routes, map<int, int> demands, int max_weight, int max_stops) {
 
-    vector<vector<int>> valid_routes;
+    vector<Route> valid_routes;
 
     for (int r = 0; r < int(permutations.size()); r++) {
         vector<int> route = permutations[r];
         int cost = 0;
-
+        int weight = 0;
         int size = route.size() - 1;
         bool valid = true;
         for (int i = 0; i < size; i++) {
             int current_stop = route[i];
             int next_stop = route[i + 1];
 
-            int current_cost = real_routes[current_stop][next_stop] + demands[next_stop]; // cost of going to next stop + next stop's demand cost
-            bool over_cost = cost + current_cost > max_cost;
+            int current_cost = real_routes[current_stop][next_stop]; // cost of going to next stop
+            int next_weight = demands[next_stop];
+            bool over_weight = weight + next_weight > max_weight;
 
-            if (current_cost == 0 || over_cost) {               //  if any constraint is violated we try to add 0 in between the edges of the violator to try and fix, ADICIONAR CALCULO DO CUSTO
+            if (current_cost == 0 || over_weight) {               //  if any constraint is violated we try to add 0 in between the edges of the violator to try and fix, ADICIONAR CALCULO DO CUSTO
                 int return_cost = real_routes[current_stop][0]; // cost of returning to the origin
 
-                if ((real_routes[current_stop][0] == 0) || (real_routes[0][next_stop] == 0) || (return_cost + cost > max_cost)) { // if there isnt a route from current_stop to 0 or from 0 to next stop the route cannot be fixed.
+                if ((real_routes[current_stop][0] == 0) || (real_routes[0][next_stop] == 0)) { // if there isnt a route from current_stop to 0 or from 0 to next stop the route cannot be fixed.
                     valid = false;
                     break; // exiting the loop as the current route cannot be fixed
                 }
 
                 route.insert(route.begin() + i + 1, 0);
-                cost = 0; // resetting cost as the vehicle returned to the origin
+                weight = 0; // resetting the weight as the vehicle returned to the origin
+                next_weight = 0;
                 current_cost = return_cost;
                 size++;
             }
+            weight += next_weight;
             cost += current_cost;
         }
 
         if (valid) {
-            if(route.size() <= max_size){
-                valid_routes.push_back(route);
-            }
-            
+            Route new_route;
+            new_route.stops = route;
+            new_route.totalCost = cost;
+            valid_routes.push_back(new_route);           
         }
     }
     return valid_routes;
 }
 
-// function to calculate the total cost of a route
-int route_cost(vector<int> route, vector<vector<int>> route_matrix) {
-    int cost = 0;
-    for (int i = 0; i < int(route.size()) - 1; i++) {
-        cost += route_matrix[i][i + 1];
-    }
-
-    return cost;
-}
-
 // function that receives the valid routes and returns the one with smallest cost
-vector<int> get_cheapest(vector<vector<int>> valid_routes, vector<vector<int>> route_matrix) {
+Route get_cheapest(vector<Route> valid_routes, vector<vector<int>> route_matrix) {
     int lowest_cost = numeric_limits<int>::max();
-    vector<int> cheapest_route;
+    Route cheapest_route;
+    Route route;
     for (int i = 0; i < int(valid_routes.size()); i++) {
-        int current_cost = route_cost(valid_routes[i], route_matrix);
-        if (current_cost < lowest_cost) {
-            lowest_cost = current_cost;
-            cheapest_route = valid_routes[i];
+        route = valid_routes[i];
+        if (route.totalCost < lowest_cost) {
+            lowest_cost = route.totalCost;
+            cheapest_route = route;
         }
     }
     return cheapest_route;
@@ -177,11 +182,11 @@ int main(int argc, char *argv[]) {
     map<int, int> demands = read_demands(file);                               // store the stops and their demands in the demands map
     vector<vector<int>> route_matrix = read_routes(file, demands.size() + 1); // adding 1 to account for the origin as a vertex in the graph
     vector<vector<int>> permutations = generate_permutations(route_matrix.size());
-    int max_cost = 190; // hardcoding max cost to test
-    int max_size = 7; // hardcoding max size to test
-    vector<vector<int>> valid_routes = filter_routes(permutations, route_matrix, demands, max_cost, max_size);
-    vector<int> cheapest_route = get_cheapest(valid_routes, route_matrix);
-    vector<vector<int>> results;
+    int max_weight = 15; // hardcoding max cost to test
+    int max_stops = 7; // hardcoding max size to test
+    vector<Route> valid_routes = filter_routes(permutations, route_matrix, demands, max_weight, max_stops);
+    Route cheapest_route = get_cheapest(valid_routes, route_matrix);
+    vector<Route> results;
     results.push_back(cheapest_route);
     write_routes(results, "debug.txt"); // writing function to debug
     // cout << permutations.size();
