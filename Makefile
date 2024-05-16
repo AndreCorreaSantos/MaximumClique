@@ -4,7 +4,7 @@ NVCC = nvcc
 
 # Compiler flags
 CXXFLAGS = -std=c++20 -Wall -Wextra
-NVCCFLAGS = -ccbin /usr/bin/g++-10 -I /usr/include/c++/10
+NVCCFLAGS = -ccbin /usr/bin/g++-10 -I /usr/include/c++/10 -arch=sm_86 
 
 # Source files
 CPP_SOURCES = $(wildcard *.cpp)

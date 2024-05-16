@@ -162,7 +162,7 @@ void debug_route(vector<int> route){
 // vector<int> solveVRP(map<int, int> stops, vector<vector<int>> routes) // receives a list of stops and their demands, and a graph of routes and costs
 // {
 //     vector<vector<int>> best_route;
-//
+
 
 //     vector<vector<vector<int>>> combinations = generate_possible_combinations(routes);
 // }
