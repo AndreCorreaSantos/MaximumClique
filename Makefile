@@ -1,30 +1,27 @@
-# Compiler
+# Compiler to use
 CXX = g++
-NVCC = nvcc
-
 # Compiler flags
 CXXFLAGS = -std=c++20 -Wall -Wextra -fopenmp
-NVCCFLAGS = -ccbin /usr/bin/g++-10 -I /usr/include/c++/10 -arch=sm_86 
 
-# Source files
-CPP_SOURCES = $(wildcard *.cpp)
-CU_SOURCES = $(wildcard *.cu)
+# Find all .cpp files
+SOURCES = $(wildcard *.cpp)
 
-# Executables
-CPP_EXECUTABLES = $(CPP_SOURCES:.cpp=)
-CU_EXECUTABLES = $(CU_SOURCES:.cu=)
+# Filter sources containing the main function
+MAIN_SOURCES = $(shell grep -l 'int main' $(SOURCES))
 
-# Default rule
-all: $(CPP_EXECUTABLES) $(CU_EXECUTABLES)
+# Convert .cpp files to executable names
+EXECUTABLES = $(MAIN_SOURCES:.cpp=)
 
-# Rule to compile .cpp files into executables
-%: %.cpp
-	$(CXX) $(CXXFLAGS) -o $@ $<
+# All other source files without main (assuming they contain helper functions)
+HELPER_SOURCES = $(filter-out $(MAIN_SOURCES), $(SOURCES))
 
-# Rule to compile .cu files into executables
-%: %.cu
-	$(NVCC) $(NVCCFLAGS) -o $@ $<
+# Default target
+all: $(EXECUTABLES)
 
-# Clean rule
+# Rule to make executables
+%: %.cpp $(HELPER_SOURCES)
+	$(CXX) $(CXXFLAGS) $< $(HELPER_SOURCES) -o $@
+
+# Clean target
 clean:
-	rm -f $(CPP_EXECUTABLES) $(CU_EXECUTABLES)
+	rm -f $(EXECUTABLES)
