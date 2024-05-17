@@ -9,28 +9,8 @@
 using namespace std;
 
 
-// read stops information from file
-map<int, int> read_demands1(ifstream &file) {
 
-    int num_vertices; // numero de vertices contando com a origem, o vertice 0.
-    file >> num_vertices;
-
-    map<int, int> stops;
-    for (int i = 1; i < num_vertices; i++) // vai de 1 a n_vertices
-    {
-        int stop;
-        int demand;
-
-        file >> stop >> demand;
-        stops[stop] = demand;
-        cout << "stop,demand:" << stop << "," << demand << "\n"; // debug
-    }
-
-    return stops;
-}
-
-// function that receives the permutations and tries to fix routes that violate constraints,
-vector<Route> filter_routes(vector<vector<int>> permutations, vector<vector<int>> real_routes, map<int, int> demands, int max_weight, int max_stops) {
+vector<Route> filter_routes(vector<vector<int>> permutations, vector<vector<int>> real_routes, vector<int> demands, int max_weight, int max_stops) {
     vector<Route> valid_routes;
     #pragma omp parallel for default(none) shared(valid_routes, permutations, real_routes, demands, max_weight, max_stops)
     for (int r = 0; r < int(permutations.size()); r++) {
@@ -44,10 +24,10 @@ vector<Route> filter_routes(vector<vector<int>> permutations, vector<vector<int>
             int next_stop = route[i + 1];
 
             int current_cost = real_routes[current_stop][next_stop]; // cost of going to next stop
-            int next_weight = demands[next_stop];
+            int next_weight = demands[next_stop]; // Access demands directly from the vector using the stop number as index
             bool over_weight = weight + next_weight > max_weight;
 
-            if (current_cost == 0 || over_weight) {               // if any constraint is violated we try to add 0 in between the edges of the violator to try and fix, ADICIONAR CALCULO DO CUSTO
+            if (current_cost == 0 || over_weight) { // if any constraint is violated we try to add 0 in between the edges of the violator to try and fix, ADDING COST CALCULATION
                 int return_cost = real_routes[current_stop][0]; // cost of returning to the origin
 
                 if ((real_routes[current_stop][0] == 0) || (real_routes[0][next_stop] == 0)) { // if there isn't a route from current_stop to 0 or from 0 to next stop the route cannot be fixed.
@@ -77,8 +57,8 @@ vector<Route> filter_routes(vector<vector<int>> permutations, vector<vector<int>
 }
 
 
-int main(int argc, char *argv[]) {
 
+int main(int argc, char *argv[]) {
     // reading data
     if (argc != 2) {
         cerr << "Usage: " << argv[0] << " <filename>\n";
@@ -86,27 +66,18 @@ int main(int argc, char *argv[]) {
     }
     string file_name = argv[1];
     ifstream file(file_name);
-    // reading max cost
-    // int max_cost; // first line in the file is the max possible cost in the car
-    // file >> max_cost;
-    map<int, int> demands = read_demands1(file);                               // store the stops and their demands in the demands map
-    vector<vector<int>> route_matrix = read_routes(file, demands.size() + 1); // adding 1 to account for the origin as a vertex in the graph
+    
+    vector<int> demands = read_demands(file);  // Store the stops and their demands in the demands vector
+    vector<vector<int>> route_matrix = read_routes(file, demands.size()); // No need to add 1 now, as the vector is already appropriately sized
     vector<vector<int>> permutations = generate_permutations(route_matrix.size());
-    int max_weight = 15; // hardcoding max cost to test
-    int max_stops = 7; // hardcoding max size to test
+    int max_weight = 15; // Hardcoding max weight to test
+    int max_stops = 7; // Hardcoding max stops to test
     vector<Route> valid_routes = filter_routes(permutations, route_matrix, demands, max_weight, max_stops);
     Route cheapest_route = get_cheapest(valid_routes);
     vector<Route> results;
     results.push_back(cheapest_route);
-    write_routes(results, "debug_omp.txt"); // writing function to debug
-    // cout << permutations.size();
-    // cout << "\n";
-    // cout << valid_routes.size();
-    // cout << "\n";
+    write_routes(results, "output/debug_omp.txt"); // Writing function to debug
 
     file.close();
-
-    // solving
-
     return 0;
 }
