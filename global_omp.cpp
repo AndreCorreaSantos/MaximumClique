@@ -1,3 +1,4 @@
+#include <omp.h>
 #include <fstream>
 #include <iostream>
 #include <limits>
@@ -90,11 +91,11 @@ vector<vector<int>> generate_permutations(int num_points) {
 
     return permutations;
 }
+
 // function that receives the permutations and tries to fix routes that violate constraints,
 vector<Route> filter_routes(vector<vector<int>> permutations, vector<vector<int>> real_routes, map<int, int> demands, int max_weight, int max_stops) {
-
     vector<Route> valid_routes;
-
+    #pragma omp parallel for default(none) shared(valid_routes, permutations, real_routes, demands, max_weight, max_stops)
     for (int r = 0; r < int(permutations.size()); r++) {
         vector<int> route = permutations[r];
         int cost = 0;
@@ -109,10 +110,10 @@ vector<Route> filter_routes(vector<vector<int>> permutations, vector<vector<int>
             int next_weight = demands[next_stop];
             bool over_weight = weight + next_weight > max_weight;
 
-            if (current_cost == 0 || over_weight) {               //  if any constraint is violated we try to add 0 in between the edges of the violator to try and fix, ADICIONAR CALCULO DO CUSTO
+            if (current_cost == 0 || over_weight) {               // if any constraint is violated we try to add 0 in between the edges of the violator to try and fix, ADICIONAR CALCULO DO CUSTO
                 int return_cost = real_routes[current_stop][0]; // cost of returning to the origin
 
-                if ((real_routes[current_stop][0] == 0) || (real_routes[0][next_stop] == 0)) { // if there isnt a route from current_stop to 0 or from 0 to next stop the route cannot be fixed.
+                if ((real_routes[current_stop][0] == 0) || (real_routes[0][next_stop] == 0)) { // if there isn't a route from current_stop to 0 or from 0 to next stop the route cannot be fixed.
                     valid = false;
                     break; // exiting the loop as the current route cannot be fixed
                 }
@@ -131,7 +132,8 @@ vector<Route> filter_routes(vector<vector<int>> permutations, vector<vector<int>
             Route new_route;
             new_route.stops = route;
             new_route.totalCost = cost;
-            valid_routes.push_back(new_route);           
+            #pragma omp critical
+            valid_routes.push_back(new_route);
         }
     }
     return valid_routes;
@@ -181,7 +183,7 @@ int main(int argc, char *argv[]) {
     Route cheapest_route = get_cheapest(valid_routes, route_matrix);
     vector<Route> results;
     results.push_back(cheapest_route);
-    write_routes(results, "debug.txt"); // writing function to debug
+    write_routes(results, "debug_omp.txt"); // writing function to debug
     // cout << permutations.size();
     // cout << "\n";
     // cout << valid_routes.size();

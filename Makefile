@@ -3,7 +3,7 @@ CXX = g++
 NVCC = nvcc
 
 # Compiler flags
-CXXFLAGS = -std=c++20 -Wall -Wextra
+CXXFLAGS = -std=c++20 -Wall -Wextra -fopenmp
 NVCCFLAGS = -ccbin /usr/bin/g++-10 -I /usr/include/c++/10 -arch=sm_86 
 
 # Source files

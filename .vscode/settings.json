@@ -76,7 +76,8 @@
         "typeindex": "cpp",
         "variant": "cpp",
         "queue": "cpp",
-        "stack": "cpp"
+        "stack": "cpp",
+        "semaphore": "cpp"
     },
     "C_Cpp.default.compilerPath": "/usr/bin/g++-11"
 }
