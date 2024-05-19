@@ -11,7 +11,7 @@ using namespace std;
 class Route {
 public:
     vector<int> stops;
-    int totalCost;
+    int total_cost;
 };
 
 // Function prototypes

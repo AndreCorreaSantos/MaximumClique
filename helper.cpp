@@ -53,8 +53,8 @@ Route get_cheapest(vector<Route> valid_routes) {
     Route cheapest_route;
 
     for (auto &route : valid_routes) {
-        if (route.totalCost < lowest_cost) {
-            lowest_cost = route.totalCost;
+        if (route.total_cost < lowest_cost) {
+            lowest_cost = route.total_cost;
             cheapest_route = route;
         }
     }
@@ -79,7 +79,7 @@ void write_routes(const vector<Route> &routes, const string &filename) {
         for (auto stop : route.stops) {
             outFile << stop << " ";
         }
-        outFile << " | " << route.totalCost << endl;
+        outFile << " | " << route.total_cost << endl;
     }
 
     outFile.close();

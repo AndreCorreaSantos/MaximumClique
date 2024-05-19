@@ -48,7 +48,7 @@ vector<Route> filter_routes(vector<vector<int>> permutations, vector<vector<int>
         if (valid) {
             Route new_route;
             new_route.stops = route;
-            new_route.totalCost = cost;
+            new_route.total_cost = cost;
             #pragma omp critical
             valid_routes.push_back(new_route);
         }
