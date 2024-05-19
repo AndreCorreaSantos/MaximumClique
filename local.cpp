@@ -29,26 +29,26 @@ Route generate_route(vector<vector<int>> route_matrix, vector<int> demands, int 
     vector<int> remaining_stops = get_stops(num_vertices);
     while(size != 1){  // stop when only 0 is left
         int lowest_cost = INT_MAX;
+        int next_stop = 0;
+        int index = 0;
         for (int i = 0; i<size; i++){
-            
-            int next_stop = remaining_stops[i];
-            int path_cost = route_matrix[current_stop][next_stop];
+            int path_cost = route_matrix[current_stop][remaining_stops[i]];
             bool path_exists = path_cost != 0;
             bool not_inplace = current_stop != i;
             bool cheaper = path_cost < lowest_cost;
 
             if(path_exists && not_inplace && cheaper){
                 lowest_cost = path_cost;
-
-                if(next_stop != 0){
-                    remaining_stops.erase(remaining_stops.begin()+i); // delete the current element if its not the origin
-                    size--;
-                }
-                route_stops.push_back(next_stop);
-                route_cost += path_cost;
-                break; // exit the for loop and search for the next_stop
+                next_stop = remaining_stops[i];
+                index = i;
             }
         }
+        if(next_stop != 0){
+            remaining_stops.erase(remaining_stops.begin()+index);
+            size--;
+        }
+        route_stops.push_back(next_stop);
+        route_cost += lowest_cost;
     }
     Route local_route;
     local_route.stops = route_stops;
