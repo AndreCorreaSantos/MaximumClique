@@ -18,24 +18,24 @@ vector<int> get_stops(int num_vertices){
 
 // function that receives the permutations and tries to fix routes that violate constraints
 Route generate_route(vector<vector<int>> route_matrix, vector<int> demands, int max_weight, int num_vertices) {
-    int cost = 0;
-    int weight = 0;
     vector<int> route_stops;
     route_stops.push_back(0);
     // starting at 0
     int current_stop = 0;
     int size = num_vertices;
-    int route_cost = 0;
     vector<int> remaining_stops = get_stops(num_vertices);
-    while(size != 1){  // stop when only 0 is left
+    while(size != 1){  // 
         int lowest_cost = INT_MAX;
         int next_stop = 0;
         int index = 0;
         for (int i = 0; i<size; i++){
-            int path_cost = route_matrix[current_stop][remaining_stops[i]];
+
+            int candidate = remaining_stops[i];
+            int path_cost = route_matrix[current_stop][candidate];
             bool path_exists = path_cost != 0;
             bool not_inplace = current_stop != i;
             bool cheaper = path_cost < lowest_cost;
+
 
             if(path_exists && not_inplace && cheaper){
                 lowest_cost = path_cost;
@@ -48,11 +48,29 @@ Route generate_route(vector<vector<int>> route_matrix, vector<int> demands, int 
             size--;
         }
         route_stops.push_back(next_stop);
-        route_cost += lowest_cost;
     }
+    route_stops.push_back(0); // returning to depot
+    // fixing overweight violations and calculating final cost
+    int weight = 0;
+    int cost = 0;
+    for (int i = 1; i<route_stops.size()-1; i++){
+        int current_stop = route_stops[i];
+        int next_stop = route_stops[i+1];
+
+        bool overweight = !(weight + demands[next_stop] <= max_weight);
+        if(overweight){ // returning to depot and resetting weight
+            route_stops.insert(route_stops.begin() + i, 0);
+            weight = 0;
+            next_stop = 0;
+        }else{
+            weight += demands[next_stop];
+        }
+        cost += route_matrix[current_stop][next_stop];
+    }
+
     Route local_route;
     local_route.stops = route_stops;
-    local_route.total_cost = route_cost;
+    local_route.total_cost = cost;
     return local_route;
 
 }
