@@ -145,30 +145,12 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    // Debug print to verify flat_permutations on rank 0 before scattering
-    // if (rank == 0) {
-    //     cout << "Flat permutations before scattering:" << endl;
-    //     for (const auto& perm : flat_permutations) {
-    //         cout << perm << " ";
-    //     }
-    //     cout << endl;
-    // }
-
-    // Allocate space for local permutations and scatter
     vector<int> local_flat_permutations(elements_per_process, -1); // Initialize with -1 to check if values are overwritten
 
     MPI_Scatter(flat_permutations.data(), elements_per_process, MPI_INT, 
                 local_flat_permutations.data(), elements_per_process, MPI_INT, 0, MPI_COMM_WORLD);
 
-    // // Debug print to verify local_flat_permutations on each rank after scattering
-    // cout << "Local flat permutations on rank " << rank << ":" << endl;
-    // cout << elements_per_process << endl;
-    // for (const auto& perm : local_flat_permutations) {
-    //     cout << perm << " ";
-    // }
-    // cout << endl;
 
-    // Reshape local_flat_permutations to local_permutations
     vector<vector<int>> local_permutations(num_permutations_per_process, vector<int>(perm_length));
     for (int i = 0; i < num_permutations_per_process; ++i) {
         local_permutations[i].assign(local_flat_permutations.begin() + i * perm_length,
@@ -194,37 +176,37 @@ int main(int argc, char *argv[]) {
     vector<int> local_serialized = serialize_routes(local_valid_routes);
     int local_size = local_serialized.size();
 
-    // // Gather the sizes of serialized routes from each process
-    // vector<int> sizes(size);
-    // MPI_Gather(&local_size, 1, MPI_INT, sizes.data(), 1, MPI_INT, 0, MPI_COMM_WORLD);
+    // Gather the sizes of serialized routes from each process
+    vector<int> sizes(size);
+    MPI_Gather(&local_size, 1, MPI_INT, sizes.data(), 1, MPI_INT, 0, MPI_COMM_WORLD);
 
-    // // Calculate displacements for gathering the serialized routes
-    // vector<int> displacements(size);
-    // int total_size = 0;
-    // if (rank == 0) {
-    //     for (int i = 0; i < size; ++i) {
-    //         displacements[i] = total_size;
-    //         total_size += sizes[i];
-    //     }
-    // }
+    // Calculate displacements for gathering the serialized routes
+    vector<int> displacements(size);
+    int total_size = 0;
+    if (rank == 0) {
+        for (int i = 0; i < size; ++i) {
+            displacements[i] = total_size;
+            total_size += sizes[i];
+        }
+    }
 
-    // // Allocate space for all serialized routes in rank 0
-    // vector<int> all_serialized_data(total_size);
+    // Allocate space for all serialized routes in rank 0
+    vector<int> all_serialized_data(total_size);
 
-    // // Gather all serialized routes at rank 0
-    // MPI_Gatherv(local_serialized.data(), local_size, MPI_INT, all_serialized_data.data(),
-    //             sizes.data(), displacements.data(), MPI_INT, 0, MPI_COMM_WORLD);
+    // Gather all serialized routes at rank 0
+    MPI_Gatherv(local_serialized.data(), local_size, MPI_INT, all_serialized_data.data(),
+                sizes.data(), displacements.data(), MPI_INT, 0, MPI_COMM_WORLD);
 
-    // // Rank 0 deserializes the routes and finds the cheapest route
-    // if (rank == 0) {
-    //     vector<Route> all_valid_routes = deserialize_routes(all_serialized_data);
-    //     if (!all_valid_routes.empty()) {
-    //         Route cheapest_route = get_cheapest(all_valid_routes);
-    //         cout << "Cheapest route cost: " << cheapest_route.total_cost << endl;
-    //     } else {
-    //         cout << "No valid routes found." << endl;
-    //     }
-    // }
+    // Rank 0 deserializes the routes and finds the cheapest route
+    if (rank == 0) {
+        vector<Route> all_valid_routes = deserialize_routes(all_serialized_data);
+        if (!all_valid_routes.empty()) {
+            Route cheapest_route = get_cheapest(all_valid_routes);
+            cout << "Cheapest route cost: " << cheapest_route.total_cost << endl;
+        } else {
+            cout << "No valid routes found." << endl;
+        }
+    }
 
     MPI_Finalize();
     return 0;
