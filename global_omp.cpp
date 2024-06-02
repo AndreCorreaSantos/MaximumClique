@@ -34,7 +34,7 @@ vector<Route> filter_routes(vector<vector<int>> permutations, vector<vector<int>
                     valid = false;
                     break; // exiting the loop as the current route cannot be fixed
                 }
-
+                
                 route.insert(route.begin() + i + 1, 0);
                 weight = 0; // resetting the weight as the vehicle returned to the origin
                 next_weight = 0;
