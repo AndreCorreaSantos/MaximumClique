@@ -12,26 +12,35 @@ NVCCFLAGS = -ccbin /usr/bin/g++-10 -I /usr/include/c++/10 -arch=sm_86 --extended
 CPP_SOURCES = $(wildcard *.cpp)
 CU_SOURCES = $(wildcard *.cu)
 
+# Filter sources containing the main function
+MAIN_SOURCES = $(shell grep -l 'int main' $(CPP_SOURCES))
+
+# Separate MPI sources for special handling
+MPI_SOURCES = $(filter %_mpi.cpp, $(MAIN_SOURCES))
+NON_MPI_SOURCES = $(filter-out %_mpi.cpp, $(MAIN_SOURCES))
+
 # Executable names derived from source files
-CPP_EXECUTABLES = $(CPP_SOURCES:.cpp=)
+CPP_EXECUTABLES = $(NON_MPI_SOURCES:.cpp=) $(MPI_SOURCES:.cpp=)
 CU_EXECUTABLES = $(CU_SOURCES:.cu=)
-MPI_EXECUTABLES = $(filter %_mpi, $(CPP_EXECUTABLES))
+
+# All other source files without main (assuming they contain helper functions)
+HELPER_SOURCES = $(filter-out $(MAIN_SOURCES), $(CPP_SOURCES))
 
 # Default target
 all: $(CPP_EXECUTABLES) $(CU_EXECUTABLES)
 
-# Rule to make MPI executables
-%_mpi: %_mpi.cpp
-	$(MPI_CXX) $(MPIFLAGS) -o $@ $<
-
 # Rule to make standard executables
-%: %.cpp
-	$(CXX) $(CXXFLAGS) -o $@ $<
+$(NON_MPI_SOURCES:.cpp=): %: %.cpp $(HELPER_SOURCES)
+	$(CXX) $(CXXFLAGS) -o $@ $^
+
+# Rule to make MPI executables
+$(MPI_SOURCES:.cpp=): %: %.cpp $(HELPER_SOURCES)
+	$(MPI_CXX) $(MPIFLAGS) -o $@ $^
 
 # Rule to compile CUDA files
-%: %.cu
+$(CU_EXECUTABLES): %: %.cu
 	$(NVCC) $(NVCCFLAGS) -o $@ $<
 
 # Clean target
 clean:
-	rm -f $(CPP_EXECUTABLES) $(CU_EXECUTABLES) $(MPI_EXECUTABLES)
+	rm -f $(CPP_EXECUTABLES) $(CU_EXECUTABLES)
