@@ -68,10 +68,9 @@ By using multiple threads, this implementation can speed up the route constructi
 
 Each one of the executables were used with 10 different inputs. The inputs were comprised of a vehicle routing problem in the range of 3 to 12 nodes, the execution times of each one of the executables were recorded and plotted in the following graph:
 
-![1717381363502](image/README/1717381363502.png)
+![1717383225810](image/README/1717383225810.png)
 
 There was an attempt to run larger size input graphs, but as the global and global omp implementations were already on their exponential phase on the graphs of size 12 the tests were stopped.
-
 
 ### MPI discussion
 
@@ -81,6 +80,7 @@ It is noticeable that the global omp mpi implementation seems to not enter its e
 mpirun -np {i-1} ./global_omp_mpi
 
 ```
+
 where `i` is the number of nodes in the input graph. This way the number of machines used by mpi were always one less than the number of nodes in the input graph, in order to use the resources in the most efficient way possible. So the fact that the global omp mpi implementation did not enter its exponential phase can be explained by the fact that the number of machines used by mpi never exceeded the maxium resources available in the machine that the tests were run.
 
 ### Global vs. Local Time Complexity in Vehicle Routing Problem (VRP)
@@ -102,3 +102,7 @@ Local search methods, like the nearest insertion heuristic, offer a more scalabl
 ## Summary
 
 Each implementation provides a distinct trade-off between complexity, computation time, and resource utilization, suitable for different scenarios from academic explorations to extensive logistical operations. The choice of implementation depends on the problem size and the available computational resources.
+
+### Appendex 
+
+the outputs of each one of the executables to the last input graph can be found in the outputs folder, with the route chosen and its price, some methods might differ in the route chosen but the price should be the same for executables in the same group, be it the local or global group.
