@@ -106,3 +106,11 @@ Each implementation provides a distinct trade-off between complexity, computatio
 ### Appendex 
 
 the outputs of each one of the executables to the last input graph can be found in the outputs folder, with the route chosen and its price, some methods might differ in the route chosen but the price should be the same for executables in the same group, be it the local or global group.
+
+
+#### Code Implementations
+- global search: https://github.com/AndreCorreaSantos/VRP/blob/main/global.cpp
+- global search with OpenMP: https://github.com/AndreCorreaSantos/VRP/blob/main/global_omp.cpp
+- global search with MPI and OpenMP: https://github.com/AndreCorreaSantos/VRP/blob/main/global_omp_mpi.cpp
+- local search: https://github.com/AndreCorreaSantos/VRP/blob/main/local.cpp
+- local search with OpenMP: https://github.com/AndreCorreaSantos/VRP/blob/main/local_omp.cpp
