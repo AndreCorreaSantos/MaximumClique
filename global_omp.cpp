@@ -76,7 +76,7 @@ int main(int argc, char *argv[]) {
     Route cheapest_route = get_cheapest(valid_routes);
     vector<Route> results;
     results.push_back(cheapest_route);
-    write_routes(results, "output/debug_omp.txt"); // Writing function to debug
+    write_routes(results, "output/global_omp.txt"); // Writing function to debug
 
     file.close();
     return 0;

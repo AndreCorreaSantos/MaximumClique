@@ -150,27 +150,14 @@ int main(int argc, char *argv[]) {
     MPI_Scatter(flat_permutations.data(), elements_per_process, MPI_INT, 
                 local_flat_permutations.data(), elements_per_process, MPI_INT, 0, MPI_COMM_WORLD);
 
-
     vector<vector<int>> local_permutations(num_permutations_per_process, vector<int>(perm_length));
     for (int i = 0; i < num_permutations_per_process; ++i) {
         local_permutations[i].assign(local_flat_permutations.begin() + i * perm_length,
                                      local_flat_permutations.begin() + (i + 1) * perm_length);
     }
 
-    // Debug print to verify scattering
-    cout << "Local permutations after scattering on rank " << rank << ":" << endl;
-    for (const auto& perm : local_permutations) {
-        for (const auto& stop : perm) {
-            cout << stop << " ";
-        }
-        cout << endl;
-    }
-
     // Run filter_routes on each node
     vector<Route> local_valid_routes = filter_routes(local_permutations, route_matrix, demands, max_weight, max_stops);
-
-    // Debug print to verify local_valid_routes
-    cout << "Rank " << rank << " has " << local_valid_routes.size() << " valid routes." << endl;
 
     // Serialize the filtered routes
     vector<int> local_serialized = serialize_routes(local_valid_routes);
@@ -197,15 +184,21 @@ int main(int argc, char *argv[]) {
     MPI_Gatherv(local_serialized.data(), local_size, MPI_INT, all_serialized_data.data(),
                 sizes.data(), displacements.data(), MPI_INT, 0, MPI_COMM_WORLD);
 
-    // Rank 0 deserializes the routes and finds the cheapest route
+    // Rank 0 deserializes the routes and writes the cheapest route to a file
     if (rank == 0) {
         vector<Route> all_valid_routes = deserialize_routes(all_serialized_data);
+        ofstream outfile("output/global_omp_mpi.txt");
         if (!all_valid_routes.empty()) {
             Route cheapest_route = get_cheapest(all_valid_routes);
-            cout << "Cheapest route cost: " << cheapest_route.total_cost << endl;
+
+            for (int stop : cheapest_route.stops) {
+                outfile << stop << " ";
+            }
+            outfile << "|" << cheapest_route.total_cost << endl;
         } else {
-            cout << "No valid routes found." << endl;
+            outfile << "No valid routes found." << endl;
         }
+        outfile.close();
     }
 
     MPI_Finalize();

@@ -72,7 +72,7 @@ int main(int argc, char *argv[]) {
     Route cheapest_route = get_cheapest(valid_routes);
     vector<Route> results;
     results.push_back(cheapest_route);
-    write_routes(results, "output/debug.txt"); // writing function to debug
+    write_routes(results, "output/global.txt"); // writing function to debug
 
     file.close();
 

@@ -105,7 +105,7 @@ int main(int argc, char *argv[]) {
     Route local_route = generate_route(route_matrix, demands, max_weight, num_vertices);
     vector<Route> results;
     results.push_back(local_route);
-    write_routes(results, "output/local_debug.txt"); 
+    write_routes(results, "output/local_omp.txt"); 
 
     file.close();
 
