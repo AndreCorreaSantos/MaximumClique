@@ -11,7 +11,7 @@ def gerar_dicionario_demandas(N):
     return {i: random.randint(1, 10) for i in range(1, N)}
 
 
-def gerar_entradas_grafo(num_nos, max_peso=100, probabilidade=0.25):
+def gerar_entradas_grafo(num_nos, max_peso=100, probabilidade=0.9):
     """
     Gera um grafo para o problema de otimização de rotas de veículos.
 
@@ -39,18 +39,19 @@ def gerar_entradas_grafo(num_nos, max_peso=100, probabilidade=0.25):
 ############################################
 #             Exemplo de uso
 ############################################
-num_nos = 4                                   # Número total de nós incluindo o depósito
-demandas = gerar_dicionario_demandas(num_nos)  # Gera as demandas para cada nó
-grafo = gerar_entradas_grafo(num_nos)          # Gera o grafo que representa os locais e custos entre eles
+for i in range(3,10):
+    num_nos =i                                # Número total de nós incluindo o depósito
+    demandas = gerar_dicionario_demandas(num_nos)  # Gera as demandas para cada nó
+    grafo = gerar_entradas_grafo(num_nos)          # Gera o grafo que representa os locais e custos entre eles
 
-# Salva o grafo em um arquivo TXT
-with open('grafo.txt', 'w') as arquivo:
-  arquivo.write(str(num_nos) + "\n")    # Número de nós, incluindo depósito
-  for local, demanda in demandas.items():
-    linha = f"{local} {demanda}\n"      # Par LOCAL DEMANDA
-    arquivo.write(linha)
+    # Salva o grafo em um arquivo TXT
+    with open(f'inputs/grafo_{i}.txt', 'w') as arquivo:
+        arquivo.write(str(num_nos) + "\n")    # Número de nós, incluindo depósito
+        for local, demanda in demandas.items():
+            linha = f"{local} {demanda}\n"      # Par LOCAL DEMANDA
+            arquivo.write(linha)
 
-  arquivo.write(str(len(grafo)) + "\n") # Número de arestas
-  for aresta, peso in grafo.items():
-    linha = f"{aresta[0]} {aresta[1]} {peso}\n" # Trio: ORIGEM DESTINO CUSTO
-    arquivo.write(linha)
+        arquivo.write(str(len(grafo)) + "\n") # Número de arestas
+        for aresta, peso in grafo.items():
+            linha = f"{aresta[0]} {aresta[1]} {peso}\n" # Trio: ORIGEM DESTINO CUSTO
+            arquivo.write(linha)
